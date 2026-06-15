@@ -7,7 +7,7 @@ class Tokenizer {
 
   public:
     Tokenizer();
-    void tokenize(std::vector<std::string> tokenSequence);
+    std::vector<int> tokenize(std::string tokenSequence);
 
     std::unordered_map<std::string, int> getMergeRules() const;
     void setMergeRules(std::unordered_map<std::string, int> rules);
