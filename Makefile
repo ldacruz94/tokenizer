@@ -1,6 +1,6 @@
 BUILD_DIR := build
 
-.PHONY: all build run clean
+.PHONY: all build run test clean
 
 all: build
 
@@ -11,6 +11,9 @@ build:
 
 run: build
 	./$(BUILD_DIR)/tokenizer
+
+test: build
+	./$(BUILD_DIR)/tokenizer_tests
 
 clean:
 	rm -rf $(BUILD_DIR)

@@ -4,9 +4,15 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 
-Tokenizer::Tokenizer() {}
+Tokenizer::Tokenizer() {
+  std::ifstream file("data/encoder.json");
+  nlohmann::json rankLookUp = nlohmann::json::parse(file);
+  this->setVocabTable(rankLookUp);
+}
 
 std::vector<int> Tokenizer::tokenize(std::string tokenSequence) {
+
+  if (tokenSequence.empty()) return {};
 
   std::vector<std::string> tokenSplit;
   for (char &c : tokenSequence) {
@@ -14,9 +20,7 @@ std::vector<int> Tokenizer::tokenize(std::string tokenSequence) {
   }
 
   std::string mergePair;
-  std::ifstream file("data/encoder.json");
-  nlohmann::json rankLookUp = nlohmann::json::parse(file);
-  int lowestRank = 0;
+  int lowestRank = INT_MAX;
   bool iterate = true;
   std::unordered_map<int, std::string> pairs = {};
 
@@ -27,8 +31,8 @@ std::vector<int> Tokenizer::tokenize(std::string tokenSequence) {
       if (mergePair == "") {
         mergePair = tokenSplit[i] + tokenSplit[i+1];
 
-        if (rankLookUp.contains(mergePair)) {
-          int rank = rankLookUp[mergePair];
+        if (this->vocabTable.contains(mergePair)) {
+          int rank = this->vocabTable[mergePair];
           lowestRank = rank;
           pairs[rank] = mergePair;
         } 
@@ -41,8 +45,8 @@ std::vector<int> Tokenizer::tokenize(std::string tokenSequence) {
         break;
       } 
 
-      if (rankLookUp.contains(mergePair)) {
-        int rank = rankLookUp[mergePair];
+      if (this->vocabTable.contains(mergePair)) {
+        int rank = this->vocabTable[mergePair];
 
         if (lowestRank > rank) {
           lowestRank = rank;
@@ -72,29 +76,17 @@ std::vector<int> Tokenizer::tokenize(std::string tokenSequence) {
     tokenSplit = std::move(newSplit);
 
     mergePair = "";
-    lowestRank = 0;
+    lowestRank = INT_MAX;
     pairs.clear();
   }
 
   // final rankLookUp
   std::vector<int> vectors = {};
   for (auto token : tokenSplit) {
-    vectors.push_back(rankLookUp[token]);
+    vectors.push_back(this->vocabTable[token]);
   }
 
   return vectors;
-}
-
-std::unordered_map<std::string, int> Tokenizer::getMergeRules() const {
-  return mergeRules;
-}
-
-void Tokenizer::setMergeRules(std::unordered_map<std::string, int> rules) {
-  mergeRules = rules;
-}
-
-std::unordered_map<std::string, int> Tokenizer::getVocabTable() const {
-  return vocabTable;
 }
 
 void Tokenizer::setVocabTable(std::unordered_map<std::string, int> vocab) {
